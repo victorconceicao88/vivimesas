@@ -445,13 +445,19 @@ export const menu = {
     itens: [
       {
         id: 501,
-        nome: "Agua Sem Gas",
+        nome: "Água sem gás 500ml",
         descricao: "Garrafa 500ml",
         preco: 1.00
       },
       {
         id: 502,
-        nome: "Agua Com Gas",
+        nome: "Água com gás Castelo",
+        descricao: "Garrafa 500ml",
+        preco: 1.50
+      },
+      {
+        id: 529,
+        nome: "Água com gás Pedras 500ml",
         descricao: "Garrafa 500ml",
         preco: 1.50
       }
@@ -491,9 +497,10 @@ export const menu = {
             tipo: "radio",
             itens: [
               { valor: "coca", label: "Coca-Cola" },
-              { valor: "pepsi", label: "Pepsi" },
-              { valor: "fanta", label: "Fanta" },
-              { valor: "sprite", label: "Sprite" }
+              { valor: "cocaZero", label: "Coca-Cola Zero" },
+              { valor: "seteup", label: "7Up" },
+              { valor: "fanta", label: "Fanta Laranja" },
+              { valor: "guarana", label: "Guaraná Antarctica" }
             ]
           }
         }
