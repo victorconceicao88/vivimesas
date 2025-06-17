@@ -81,8 +81,14 @@ const AdminPanel = () => {
   
   // Estado do sistema
   const [tables, setTables] = useState([]);
-  const [selectedTable, setSelectedTable] = useState(null);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedTable, setSelectedTable] = useState(() => {
+    const saved = localStorage.getItem('selectedTable');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [selectedOrder, setSelectedOrder] = useState(() => {
+    const saved = localStorage.getItem('selectedOrder');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [activeTab, setActiveTab] = useState('all');
   const [currentPage, setCurrentPage] = useState(0);
   const [lastUpdate, setLastUpdate] = useState(new Date());
@@ -90,11 +96,17 @@ const AdminPanel = () => {
   const [error, setError] = useState(null);
   
   // Impressora
-  const [printerConnected, setPrinterConnected] = useState(false);
+  const [printerConnected, setPrinterConnected] = useState(() => {
+    const saved = localStorage.getItem('printerState');
+    return saved ? JSON.parse(saved).connected : false;
+  });
   const [isPrinting, setIsPrinting] = useState(false);
   const printerDeviceRef = useRef(null);
   const printerCharacteristicRef = useRef(null);
-  const [printedItems, setPrintedItems] = useState({});
+  const [printedItems, setPrintedItems] = useState(() => {
+    const saved = localStorage.getItem('printedItems');
+    return saved ? JSON.parse(saved) : {};
+  });
   
   // Modais
   const [showTableDetailsModal, setShowTableDetailsModal] = useState(false);
@@ -131,6 +143,23 @@ const AdminPanel = () => {
   const menuItemsRef = useRef(null);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [customizingItem, setCustomizingItem] = useState(false);
+
+  // Persist states in localStorage
+  useEffect(() => {
+    if (selectedTable) {
+      localStorage.setItem('selectedTable', JSON.stringify(selectedTable));
+    }
+  }, [selectedTable]);
+
+  useEffect(() => {
+    if (selectedOrder) {
+      localStorage.setItem('selectedOrder', JSON.stringify(selectedOrder));
+    }
+  }, [selectedOrder]);
+
+  useEffect(() => {
+    localStorage.setItem('printedItems', JSON.stringify(printedItems));
+  }, [printedItems]);
 
   // Efeito para verificar autenticação
   useEffect(() => {
@@ -251,6 +280,7 @@ const AdminPanel = () => {
         lastConnected: Date.now()
       };
       localStorage.setItem('bluetoothPrinter', JSON.stringify(printerState));
+      setPrinterConnected(true);
     } catch (err) {
       console.error('Erro ao salvar estado da impressora:', err);
     }
@@ -802,70 +832,70 @@ const AdminPanel = () => {
   }, [selectedTable, selectedOrder]);
 
   // Função para fechar pedido
-const closeOrder = useCallback(async () => {
-  if (!selectedTable || !selectedOrder?.id || !selectedOrder.items?.length) {
-    setError('Não é possível fechar um pedido sem itens');
-    return;
-  }
+  const closeOrder = useCallback(async () => {
+    if (!selectedTable || !selectedOrder?.id || !selectedOrder.items?.length) {
+      setError('Não é possível fechar um pedido sem itens');
+      return;
+    }
 
-  setIsClosingOrder(true);
-  try {
-    const table = tables.find(t => t.id === selectedTable);
-    const total = selectedOrder.items.reduce((sum, item) => {
-      const itemPrice = parseFloat(item.price) || 0;
-      const itemQuantity = parseInt(item.quantity) || 1;
-      return sum + (itemPrice * itemQuantity);
-    }, 0);
+    setIsClosingOrder(true);
+    try {
+      const table = tables.find(t => t.id === selectedTable);
+      const total = selectedOrder.items.reduce((sum, item) => {
+        const itemPrice = parseFloat(item.price) || 0;
+        const itemQuantity = parseInt(item.quantity) || 1;
+        return sum + (itemPrice * itemQuantity);
+      }, 0);
 
-    const orderToClose = {
-      ...selectedOrder,
-      total: total,
-      closedAt: Date.now(),
-      closedBy: auth.currentUser?.email || 'admin',
-      status: 'closed',
-      paymentMethod: paymentMethod // Adiciona o método de pagamento ao fechar
-    };
+      const orderToClose = {
+        ...selectedOrder,
+        total: total,
+        closedAt: Date.now(),
+        closedBy: auth.currentUser?.email || 'admin',
+        status: 'closed',
+        paymentMethod: paymentMethod // Adiciona o método de pagamento ao fechar
+      };
 
-    // Adicionar ao histórico
-    const historyRef = ref(database, `tables/${selectedTable}/ordersHistory`);
-    const newHistoryRef = push(historyRef);
-    await set(newHistoryRef, orderToClose);
+      // Adicionar ao histórico
+      const historyRef = ref(database, `tables/${selectedTable}/ordersHistory`);
+      const newHistoryRef = push(historyRef);
+      await set(newHistoryRef, orderToClose);
 
-    // Remover pedido atual
-    const orderRef = ref(database, `tables/${selectedTable}/currentOrder/${selectedOrder.id}`);
-    await remove(orderRef);
-    
-    // Atualizar status da mesa
-    const tableRef = ref(database, `tables/${selectedTable}`);
-    await update(tableRef, {
-      status: 'available'
-    });
-    
-    // Atualizar estado local
-    setTables(prevTables => prevTables.map(table => {
-      if (table.id === selectedTable) {
-        return {
-          ...table,
-          currentOrder: null,
-          status: 'available'
-        };
-      }
-      return table;
-    }));
-    
-    // Resetar estados
-    setSelectedOrder(null);
-    setPaymentMethod('dinheiro'); // Resetar para o valor padrão
-    setShowTableDetailsModal(false);
-    setShowCloseOrderModal(false);
-    
-  } catch (error) {
-    console.error("Erro ao fechar comanda:", error);
-    setError(error.message || 'Erro ao fechar comanda');
-  } finally {
-    setIsClosingOrder(false);
-  }
-}, [selectedTable, selectedOrder, tables, paymentMethod]);
+      // Remover pedido atual
+      const orderRef = ref(database, `tables/${selectedTable}/currentOrder/${selectedOrder.id}`);
+      await remove(orderRef);
+      
+      // Atualizar status da mesa
+      const tableRef = ref(database, `tables/${selectedTable}`);
+      await update(tableRef, {
+        status: 'available'
+      });
+      
+      // Atualizar estado local
+      setTables(prevTables => prevTables.map(table => {
+        if (table.id === selectedTable) {
+          return {
+            ...table,
+            currentOrder: null,
+            status: 'available'
+          };
+        }
+        return table;
+      }));
+      
+      // Resetar estados
+      setSelectedOrder(null);
+      setPaymentMethod('dinheiro'); // Resetar para o valor padrão
+      setShowTableDetailsModal(false);
+      setShowCloseOrderModal(false);
+      
+    } catch (error) {
+      console.error("Erro ao fechar comanda:", error);
+      setError(error.message || 'Erro ao fechar comanda');
+    } finally {
+      setIsClosingOrder(false);
+    }
+  }, [selectedTable, selectedOrder, tables, paymentMethod]);
 
   // Função para carregar histórico de pedidos
   const loadOrderHistory = useCallback(async () => {
@@ -1884,21 +1914,20 @@ const closeOrder = useCallback(async () => {
   );
 
   // Renderização do modal de fechamento de comanda
- const renderCloseOrderModal = () => {
-  // Verifica se existe um pedido selecionado
-  if (!selectedOrder) return null;
+  const renderCloseOrderModal = () => {
+    if (!selectedOrder) return null;
 
-  const table = tables.find(t => t.id === selectedTable);
-  const tableName = `Mesa ${selectedTable} (${table?.type === 'interna' ? 'Interna' : 'Externa'})`;
-  const orderTotal = calculateOrderTotal(selectedOrder);
+    const table = tables.find(t => t.id === selectedTable);
+    const tableName = `Mesa ${selectedTable} (${table?.type === 'interna' ? 'Interna' : 'Externa'})`;
+    const orderTotal = calculateOrderTotal(selectedOrder);
 
-  return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    >
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      >
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -2261,14 +2290,14 @@ const closeOrder = useCallback(async () => {
                       </motion.button>
 
                       <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => selectedOrder && setShowCloseOrderModal(true)}
-                      className="px-4 py-3 bg-gradient-to-br from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all hover:shadow-md flex items-center justify-center gap-2 font-medium"
-                    >
-                      <FaCheck className="h-5 w-5" />
-                      Fechar Mesa
-                    </motion.button>
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => selectedOrder && setShowCloseOrderModal(true)}
+                        className="px-4 py-3 bg-gradient-to-br from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all hover:shadow-md flex items-center justify-center gap-2 font-medium"
+                      >
+                        <FaCheck className="h-5 w-5" />
+                        Fechar Mesa
+                      </motion.button>
                     </div>
                   </div>
                 )}
