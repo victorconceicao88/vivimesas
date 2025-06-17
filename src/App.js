@@ -2020,7 +2020,7 @@ const closeOrder = useCallback(async () => {
                 ) : (
                   <FaCheck className="h-5 w-5" />
                 )}
-                Confirmar Fechamento
+                Confirmar
               </motion.button>
             </div>
           </div>
