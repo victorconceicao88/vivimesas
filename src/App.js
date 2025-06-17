@@ -24,7 +24,7 @@ const initialTables = () => {
   const tables = [];
   
   // Mesas internas (1-16)
-  for (let i = 1; i <= 16; i++) {
+  for (let i = 1; i <= 18; i++) {
     tables.push({
       id: i.toString(),
       type: 'interna',
@@ -34,7 +34,7 @@ const initialTables = () => {
     });
   }
   
-  // Mesas externas (19-36)
+  // Mesas externas (17-36)
   for (let i = 19; i <= 36; i++) {
     tables.push({
       id: i.toString(),
@@ -98,6 +98,7 @@ const AdminPanel = () => {
   const [showTableDetailsModal, setShowTableDetailsModal] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showCloseOrderModal, setShowCloseOrderModal] = useState(false);
   
   // Itens do menu
   const [selectedMenuItem, setSelectedMenuItem] = useState(null);
@@ -406,83 +407,86 @@ const AdminPanel = () => {
     }
   }, [connectToPrinter]);
 
-// Função para formatar recibo
-const formatReceipt = useCallback((order, items) => {
-  // Categorias da cozinha (sem acentos)
-  const kitchenCategories = ['churrasco', 'hamburgueres', 'combos', 'porcoes', 'sobremesas', 'pratosSemana'];
-  
-  // Separar itens
-  const kitchenItems = items.filter(item => kitchenCategories.includes(item.category));
-  const barItems = items.filter(item => !kitchenCategories.includes(item.category));
-
-  // Formatação ULTRA PREMIUM
-  let receipt = '\n\n'; // Espaço inicial para alinhamento
-  
-  // Função para texto GIGANTE (centralizado e em bloco)
-  const giantText = (text) => {
-    const border = '********************************\n';
-    const centered = text.toUpperCase().padStart(15 + text.length/2).padEnd(30) + '\n';
-    return border + centered + border;
-  };
-
-  // Função para texto GRANDE
-  const bigText = (text) => text.toUpperCase().padEnd(35, ' ') + '\n';
-
-  // Cabeçalho MEGA
-  receipt += giantText('cozinha da vivi');
-  receipt += bigText(`mesa: ${selectedTable}`);
-  receipt += bigText(`pedido: ${order.id.slice(0, 8)}`);
-  receipt += '--------------------------------\n\n';
-
-  // Seção COZINHA SUPER DESTACADA
-  if (kitchenItems.length > 0) {
-    receipt += giantText('cozinha');
+  // Função para formatar recibo
+  const formatReceipt = useCallback((order, items) => {
+    // Categorias da cozinha (sem acentos)
+    const kitchenCategories = ['churrasco', 'hamburgueres', 'combos', 'porcoes', 'sobremesas', 'pratosSemana'];
     
-    kitchenItems.forEach(item => {
-      receipt += bigText(`${item.quantity}x ${item.nome}`);
-      receipt += bigText(`valor: ${(item.price * item.quantity).toFixed(2)}`);
-      
-      // Opções (se existirem)
-      if (item.options) {
-        Object.values(item.options).flat().forEach(opt => {
-          if (opt) receipt += bigText(`> ${opt}`);
-        });
-      }
-      
-      // Observações (se existirem)
-      if (item.notes) receipt += bigText(`obs: ${item.notes}`);
-      
-      receipt += '--------------------------------\n';
-    });
-  }
-  
-  // Seção BAR SUPER DESTACADA
-  if (barItems.length > 0) {
-    receipt += giantText('bar');
-    
-    barItems.forEach(item => {
-      receipt += bigText(`${item.quantity}x ${item.nome}`);
-      receipt += bigText(`valor: ${(item.price * item.quantity).toFixed(2)}`);
-      
-      // Opções (se existirem)
-      if (item.options) {
-        Object.values(item.options).flat().forEach(opt => {
-          if (opt) receipt += bigText(`> ${opt}`);
-        });
-      }
-      
-      // Observações (se existirem)
-      if (item.notes) receipt += bigText(`obs: ${item.notes}`);
-      
-      receipt += '--------------------------------\n';
-    });
-  }
+    // Separar itens
+    const kitchenItems = items.filter(item => kitchenCategories.includes(item.category));
+    const barItems = items.filter(item => !kitchenCategories.includes(item.category));
 
-  // Rodapé PREMIUM
-  receipt += '\n' + giantText('obrigado');
-  
-  return receipt;
-}, [selectedTable]);
+    // Formatação
+    let receipt = '\n\n'; // Espaço inicial para alinhamento
+    
+    // Função para texto GIGANTE (centralizado e em bloco)
+    const giantText = (text) => {
+      const border = '********************************\n';
+      const centered = text.toUpperCase().padStart(15 + text.length/2).padEnd(30) + '\n';
+      return border + centered + border;
+    };
+
+    // Função para texto GRANDE
+    const bigText = (text) => text.toUpperCase().padEnd(35, ' ') + '\n';
+
+    // Função para observação em negrito
+    const boldNote = (text) => `**OBS: ${text.toUpperCase()}**\n`;
+
+    // Cabeçalho
+    receipt += giantText('cozinha da vivi');
+    receipt += bigText(`mesa: ${selectedTable}`);
+    receipt += bigText(`pedido: ${order.id.slice(0, 8)}`);
+    receipt += '--------------------------------\n\n';
+
+    // Seção COZINHA
+    if (kitchenItems.length > 0) {
+      receipt += giantText('cozinha');
+      
+      kitchenItems.forEach(item => {
+        receipt += bigText(`${item.quantity}x ${item.nome}`);
+        receipt += bigText(`valor: ${(item.price * item.quantity).toFixed(2)}`);
+        
+        // Opções (se existirem)
+        if (item.options) {
+          Object.values(item.options).flat().forEach(opt => {
+            if (opt) receipt += bigText(`> ${opt}`);
+          });
+        }
+        
+        // Observações em negrito
+        if (item.notes) receipt += boldNote(item.notes);
+        
+        receipt += '--------------------------------\n';
+      });
+    }
+    
+    // Seção BAR
+    if (barItems.length > 0) {
+      receipt += giantText('bar');
+      
+      barItems.forEach(item => {
+        receipt += bigText(`${item.quantity}x ${item.nome}`);
+        receipt += bigText(`valor: ${(item.price * item.quantity).toFixed(2)}`);
+        
+        // Opções (se existirem)
+        if (item.options) {
+          Object.values(item.options).flat().forEach(opt => {
+            if (opt) receipt += bigText(`> ${opt}`);
+          });
+        }
+        
+        // Observações em negrito
+        if (item.notes) receipt += boldNote(item.notes);
+        
+        receipt += '--------------------------------\n';
+      });
+    }
+
+    // Rodapé
+    receipt += '\n' + giantText('obrigado');
+    
+    return receipt;
+  }, [selectedTable]);
 
   // Função para marcar itens como impressos
   const markItemsAsPrinted = useCallback(async (tableId, orderId, items) => {
@@ -612,114 +616,114 @@ const formatReceipt = useCallback((order, items) => {
   }, [selectedTable]);
 
   // Função para adicionar item ao pedido
-const addItemToOrder = useCallback(async () => {
-  if (!selectedTable || !selectedMenuItem) return;
+  const addItemToOrder = useCallback(async () => {
+    if (!selectedTable || !selectedMenuItem) return;
 
-  setLoading(true);
-  try {
-    let orderRef;
-    let orderData;
-    
-    // Calcular preço base + adicionais
-    let finalPrice = selectedMenuItem.preco;
-    
-    // Processar opções selecionadas e calcular adicionais
-    const processedOptions = {};
-    if (selectedMenuItem.opcoes) {
-      Object.entries(selectedMenuItem.opcoes).forEach(([optionKey, optionConfig]) => {
-        if (selectedOptions[optionKey]) {
-          processedOptions[optionKey] = selectedOptions[optionKey];
-          
-          // Verificar se há adicionais nas opções selecionadas
-          if (Array.isArray(selectedOptions[optionKey])) {
-            // Opção do tipo checkbox (múltiplas seleções)
-            selectedOptions[optionKey].forEach(val => {
-              const optionItem = optionConfig.itens.find(i => i.valor === val);
+    setLoading(true);
+    try {
+      let orderRef;
+      let orderData;
+      
+      // Calcular preço base + adicionais
+      let finalPrice = selectedMenuItem.preco;
+      
+      // Processar opções selecionadas e calcular adicionais
+      const processedOptions = {};
+      if (selectedMenuItem.opcoes) {
+        Object.entries(selectedMenuItem.opcoes).forEach(([optionKey, optionConfig]) => {
+          if (selectedOptions[optionKey]) {
+            processedOptions[optionKey] = selectedOptions[optionKey];
+            
+            // Verificar se há adicionais nas opções selecionadas
+            if (Array.isArray(selectedOptions[optionKey])) {
+              // Opção do tipo checkbox (múltiplas seleções)
+              selectedOptions[optionKey].forEach(val => {
+                const optionItem = optionConfig.itens.find(i => i.valor === val);
+                if (optionItem && optionItem.preco) {
+                  finalPrice += optionItem.preco;
+                }
+              });
+            } else {
+              // Opção do tipo radio (única seleção)
+              const optionItem = optionConfig.itens.find(i => i.valor === selectedOptions[optionKey]);
               if (optionItem && optionItem.preco) {
                 finalPrice += optionItem.preco;
               }
-            });
-          } else {
-            // Opção do tipo radio (única seleção)
-            const optionItem = optionConfig.itens.find(i => i.valor === selectedOptions[optionKey]);
-            if (optionItem && optionItem.preco) {
-              finalPrice += optionItem.preco;
             }
           }
-        }
-      });
-    }
+        });
+      }
 
-    if (selectedOrder?.id) {
-      orderRef = ref(database, `tables/${selectedTable}/currentOrder/${selectedOrder.id}`);
-      const currentItems = selectedOrder.items || [];
+      if (selectedOrder?.id) {
+        orderRef = ref(database, `tables/${selectedTable}/currentOrder/${selectedOrder.id}`);
+        const currentItems = selectedOrder.items || [];
+        
+        orderData = {
+          items: [...currentItems, {
+            ...selectedMenuItem,
+            quantity: newItemQuantity,
+            addedAt: Date.now(),
+            printed: false,
+            notes: itemNotes[selectedMenuItem.id] || '',
+            category: activeMenuTab,
+            options: processedOptions,
+            price: finalPrice // Usar o preço calculado com adicionais
+          }],
+          updatedAt: Date.now()
+        };
+      } else {
+        orderRef = ref(database, `tables/${selectedTable}/currentOrder`);
+        orderData = {
+          items: [{
+            ...selectedMenuItem,
+            quantity: newItemQuantity,
+            addedAt: Date.now(),
+            printed: false,
+            notes: itemNotes[selectedMenuItem.id] || '',
+            category: activeMenuTab,
+            options: processedOptions,
+            price: finalPrice // Usar o preço calculado com adicionais
+          }],
+          status: 'open',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          tableId: selectedTable
+        };
+      }
+
+      if (selectedOrder?.id) {
+        await update(orderRef, orderData);
+      } else {
+        const newOrderRef = await push(orderRef, orderData);
+        setSelectedOrder({ id: newOrderRef.key, ...orderData });
+        
+        // Atualizar status da mesa
+        const tableRef = ref(database, `tables/${selectedTable}`);
+        await update(tableRef, {
+          status: 'occupied'
+        });
+      }
+
+      // Resetar estado
+      setSelectedMenuItem(null);
+      setNewItemQuantity(1);
+      setSelectedOptions({});
+      setItemNotes(prev => ({
+        ...prev,
+        [selectedMenuItem.id]: ''
+      }));
+      setCustomizingItem(false);
       
-      orderData = {
-        items: [...currentItems, {
-          ...selectedMenuItem,
-          quantity: newItemQuantity,
-          addedAt: Date.now(),
-          printed: false,
-          notes: itemNotes[selectedMenuItem.id] || '',
-          category: activeMenuTab,
-          options: processedOptions,
-          price: finalPrice // Usar o preço calculado com adicionais
-        }],
-        updatedAt: Date.now()
-      };
-    } else {
-      orderRef = ref(database, `tables/${selectedTable}/currentOrder`);
-      orderData = {
-        items: [{
-          ...selectedMenuItem,
-          quantity: newItemQuantity,
-          addedAt: Date.now(),
-          printed: false,
-          notes: itemNotes[selectedMenuItem.id] || '',
-          category: activeMenuTab,
-          options: processedOptions,
-          price: finalPrice // Usar o preço calculado com adicionais
-        }],
-        status: 'open',
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        tableId: selectedTable
-      };
-    }
-
-    if (selectedOrder?.id) {
-      await update(orderRef, orderData);
-    } else {
-      const newOrderRef = await push(orderRef, orderData);
-      setSelectedOrder({ id: newOrderRef.key, ...orderData });
+      setShowAddItemModal(false);
+      setShowTableDetailsModal(true);
       
-      // Atualizar status da mesa
-      const tableRef = ref(database, `tables/${selectedTable}`);
-      await update(tableRef, {
-        status: 'occupied'
-      });
+    } catch (err) {
+      setError('Erro ao adicionar item');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-
-    // Resetar estado
-    setSelectedMenuItem(null);
-    setNewItemQuantity(1);
-    setSelectedOptions({});
-    setItemNotes(prev => ({
-      ...prev,
-      [selectedMenuItem.id]: ''
-    }));
-    setCustomizingItem(false);
-    
-    setShowAddItemModal(false);
-    setShowTableDetailsModal(true);
-    
-  } catch (err) {
-    setError('Erro ao adicionar item');
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-}, [selectedTable, selectedMenuItem, selectedOrder, newItemQuantity, itemNotes, activeMenuTab, selectedOptions]);
+  }, [selectedTable, selectedMenuItem, selectedOrder, newItemQuantity, itemNotes, activeMenuTab, selectedOptions]);
 
   // Função para lidar com a seleção de opções
   const handleOptionChange = (optionKey, optionValue, isCheckbox = false) => {
@@ -797,8 +801,11 @@ const addItemToOrder = useCallback(async () => {
 
   // Função para fechar pedido
 const closeOrder = useCallback(async () => {
-  if (!selectedTable || !selectedOrder?.id) return;
-  
+  if (!selectedTable || !selectedOrder?.id || !selectedOrder.items?.length) {
+    setError('Não é possível fechar um pedido sem itens');
+    return;
+  }
+
   setIsClosingOrder(true);
   try {
     const table = tables.find(t => t.id === selectedTable);
@@ -807,17 +814,14 @@ const closeOrder = useCallback(async () => {
       const itemQuantity = parseInt(item.quantity) || 1;
       return sum + (itemPrice * itemQuantity);
     }, 0);
-    
-    if (selectedOrder.items?.length === 0) {
-      throw new Error('Não é possível fechar um pedido sem itens');
-    }
 
     const orderToClose = {
       ...selectedOrder,
       total: total,
       closedAt: Date.now(),
       closedBy: auth.currentUser?.email || 'admin',
-      status: 'closed'
+      status: 'closed',
+      paymentMethod: paymentMethod // Adiciona o método de pagamento ao fechar
     };
 
     // Adicionar ao histórico
@@ -847,15 +851,19 @@ const closeOrder = useCallback(async () => {
       return table;
     }));
     
+    // Resetar estados
     setSelectedOrder(null);
+    setPaymentMethod('dinheiro'); // Resetar para o valor padrão
     setShowTableDetailsModal(false);
+    setShowCloseOrderModal(false);
+    
   } catch (error) {
     console.error("Erro ao fechar comanda:", error);
     setError(error.message || 'Erro ao fechar comanda');
   } finally {
     setIsClosingOrder(false);
   }
-}, [selectedTable, selectedOrder, tables]);
+}, [selectedTable, selectedOrder, tables, paymentMethod]);
 
   // Função para carregar histórico de pedidos
   const loadOrderHistory = useCallback(async () => {
@@ -922,14 +930,14 @@ const closeOrder = useCallback(async () => {
   }, [orderHistory, historySearchTerm, historyDateRange]);
 
   // Função para calcular total do pedido
-const calculateOrderTotal = useCallback((order) => {
-  if (!order?.items) return 0;
-  return order.items.reduce((sum, item) => {
-    const itemPrice = parseFloat(item.price) || 0;
-    const itemQuantity = parseInt(item.quantity) || 1;
-    return sum + (itemPrice * itemQuantity);
-  }, 0);
-}, []);
+  const calculateOrderTotal = useCallback((order) => {
+    if (!order?.items) return 0;
+    return order.items.reduce((sum, item) => {
+      const itemPrice = parseFloat(item.price) || 0;
+      const itemQuantity = parseInt(item.quantity) || 1;
+      return sum + (itemPrice * itemQuantity);
+    }, 0);
+  }, []);
 
   // Função para selecionar mesa
   const handleTableSelect = useCallback((tableNumber) => {
@@ -1614,128 +1622,128 @@ const calculateOrderTotal = useCallback((order) => {
             )}
           </div>
         ) : customizingItem ? (
-  <div className="p-4 md:p-6">
-    <motion.button
-      whileHover={{ x: -2 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={() => setCustomizingItem(false)}
-      className="flex items-center text-blue-600 mb-4 text-sm font-medium"
-    >
-      <FaChevronLeft className="h-3 w-3 mr-1" />
-      Voltar para o item
-    </motion.button>
-    
-    <div className="mb-6">
-      <h4 className="font-bold text-lg text-gray-800 mb-1">{selectedMenuItem.nome}</h4>
-      <p className="text-gray-600 text-sm">{selectedMenuItem.descricao}</p>
-    </div>
+          <div className="p-4 md:p-6">
+            <motion.button
+              whileHover={{ x: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setCustomizingItem(false)}
+              className="flex items-center text-blue-600 mb-4 text-sm font-medium"
+            >
+              <FaChevronLeft className="h-3 w-3 mr-1" />
+              Voltar para o item
+            </motion.button>
+            
+            <div className="mb-6">
+              <h4 className="font-bold text-lg text-gray-800 mb-1">{selectedMenuItem.nome}</h4>
+              <p className="text-gray-600 text-sm">{selectedMenuItem.descricao}</p>
+            </div>
 
-    <div className="space-y-6">
-      {selectedMenuItem.opcoes && Object.entries(selectedMenuItem.opcoes).map(([optionKey, optionConfig]) => (
-        <div key={optionKey} className="bg-white rounded-lg border border-gray-200 p-4">
-          <label className="block text-gray-700 mb-3 font-medium">
-            {optionConfig.titulo}
-            {optionConfig.obrigatorio && <span className="text-red-500 ml-1">*</span>}
-          </label>
-          
-          <div className="space-y-3">
-            {optionConfig.itens.map(item => (
-              <label 
-                key={item.valor} 
-                className={`flex items-start p-3 rounded-lg border transition-colors ${
-                  (optionConfig.tipo === 'radio' && selectedOptions[optionKey] === item.valor) ||
-                  (optionConfig.tipo === 'checkbox' && (selectedOptions[optionKey] || []).includes(item.valor))
-                    ? 'border-blue-300 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                {optionConfig.tipo === 'radio' ? (
-                  <input
-                    type="radio"
-                    name={optionKey}
-                    checked={selectedOptions[optionKey] === item.valor}
-                    onChange={() => handleOptionChange(optionKey, item.valor)}
-                    className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                ) : (
-                  <input
-                    type="checkbox"
-                    checked={(selectedOptions[optionKey] || []).includes(item.valor)}
-                    onChange={() => handleOptionChange(optionKey, item.valor, true)}
-                    className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                )}
-                <div className="ml-3 flex-1">
-                  <span className="text-gray-700">{item.label}</span>
-                  {item.preco && (
-                    <span className="block text-sm text-blue-600 mt-1">
-                      +€{item.preco.toFixed(2)}
-                    </span>
-                  )}
+            <div className="space-y-6">
+              {selectedMenuItem.opcoes && Object.entries(selectedMenuItem.opcoes).map(([optionKey, optionConfig]) => (
+                <div key={optionKey} className="bg-white rounded-lg border border-gray-200 p-4">
+                  <label className="block text-gray-700 mb-3 font-medium">
+                    {optionConfig.titulo}
+                    {optionConfig.obrigatorio && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+                  
+                  <div className="space-y-3">
+                    {optionConfig.itens.map(item => (
+                      <label 
+                        key={item.valor} 
+                        className={`flex items-start p-3 rounded-lg border transition-colors ${
+                          (optionConfig.tipo === 'radio' && selectedOptions[optionKey] === item.valor) ||
+                          (optionConfig.tipo === 'checkbox' && (selectedOptions[optionKey] || []).includes(item.valor))
+                            ? 'border-blue-300 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        {optionConfig.tipo === 'radio' ? (
+                          <input
+                            type="radio"
+                            name={optionKey}
+                            checked={selectedOptions[optionKey] === item.valor}
+                            onChange={() => handleOptionChange(optionKey, item.valor)}
+                            className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                          />
+                        ) : (
+                          <input
+                            type="checkbox"
+                            checked={(selectedOptions[optionKey] || []).includes(item.valor)}
+                            onChange={() => handleOptionChange(optionKey, item.valor, true)}
+                            className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                          />
+                        )}
+                        <div className="ml-3 flex-1">
+                          <span className="text-gray-700">{item.label}</span>
+                          {item.preco && (
+                            <span className="block text-sm text-blue-600 mt-1">
+                              +€{item.preco.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </label>
-            ))}
-          </div>
-        </div>
-      ))}
+              ))}
 
-      <div className="bg-gray-50 rounded-xl p-4">
-        <label className="block text-gray-700 mb-3 font-medium">Quantidade:</label>
-        <div className="flex items-center gap-3 max-w-xs mx-auto">
-          <motion.button 
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setNewItemQuantity(prev => Math.max(1, prev - 1))}
-            className="w-10 h-10 bg-white rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors border border-gray-300"
-          >
-            <FaMinus className="text-gray-600" />
-          </motion.button>
-          <div className="flex-1 text-center border border-gray-300 rounded-lg py-2 bg-white font-medium">
-            {newItemQuantity}
+              <div className="bg-gray-50 rounded-xl p-4">
+                <label className="block text-gray-700 mb-3 font-medium">Quantidade:</label>
+                <div className="flex items-center gap-3 max-w-xs mx-auto">
+                  <motion.button 
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setNewItemQuantity(prev => Math.max(1, prev - 1))}
+                    className="w-10 h-10 bg-white rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors border border-gray-300"
+                  >
+                    <FaMinus className="text-gray-600" />
+                  </motion.button>
+                  <div className="flex-1 text-center border border-gray-300 rounded-lg py-2 bg-white font-medium">
+                    {newItemQuantity}
+                  </div>
+                  <motion.button 
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setNewItemQuantity(prev => prev + 1)}
+                    className="w-10 h-10 bg-white rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors border border-gray-300"
+                  >
+                    <FaPlus className="text-gray-600" />
+                  </motion.button>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <label className="block text-gray-700 mb-2 font-medium">Observações:</label>
+                <textarea
+                  value={itemNotes[selectedMenuItem.id] || ''}
+                  onChange={(e) => setItemNotes(prev => ({
+                    ...prev,
+                    [selectedMenuItem.id]: e.target.value
+                  }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="Ex: Sem cebola, bem passado, etc."
+                  rows={3}
+                />
+              </div>
+              
+              <div className="bg-blue-50 rounded-xl p-4 flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-gray-600">Subtotal</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    € {(selectedMenuItem.preco * newItemQuantity).toFixed(2)}
+                  </p>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={addItemToOrder}
+                  className="px-6 py-3 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-colors font-medium"
+                  disabled={loading}
+                >
+                  {loading ? 'Adicionando...' : 'Confirmar'}
+                </motion.button>
+              </div>
+            </div>
           </div>
-          <motion.button 
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setNewItemQuantity(prev => prev + 1)}
-            className="w-10 h-10 bg-white rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors border border-gray-300"
-          >
-            <FaPlus className="text-gray-600" />
-          </motion.button>
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <label className="block text-gray-700 mb-2 font-medium">Observações:</label>
-        <textarea
-          value={itemNotes[selectedMenuItem.id] || ''}
-          onChange={(e) => setItemNotes(prev => ({
-            ...prev,
-            [selectedMenuItem.id]: e.target.value
-          }))}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-          placeholder="Ex: Sem cebola, bem passado, etc."
-          rows={3}
-        />
-      </div>
-      
-      <div className="bg-blue-50 rounded-xl p-4 flex justify-between items-center">
-        <div>
-          <p className="text-sm text-gray-600">Subtotal</p>
-          <p className="text-lg font-bold text-blue-600">
-            € {(selectedMenuItem.preco * newItemQuantity).toFixed(2)}
-          </p>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={addItemToOrder}
-          className="px-6 py-3 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-colors font-medium"
-          disabled={loading}
-        >
-          {loading ? 'Adicionando...' : 'Confirmar'}
-        </motion.button>
-      </div>
-    </div>
-  </div>
-) : (
+        ) : (
           /* Visualização do item antes da personalização */
           <div className="p-4 md:p-6">
             <motion.button
@@ -1872,6 +1880,154 @@ const calculateOrderTotal = useCallback((order) => {
       </motion.div>
     </motion.div>
   );
+
+  // Renderização do modal de fechamento de comanda
+ const renderCloseOrderModal = () => {
+  // Verifica se existe um pedido selecionado
+  if (!selectedOrder) return null;
+
+  const table = tables.find(t => t.id === selectedTable);
+  const tableName = `Mesa ${selectedTable} (${table?.type === 'interna' ? 'Interna' : 'Externa'})`;
+  const orderTotal = calculateOrderTotal(selectedOrder);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    >
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        >
+          <div className="sticky top-0 bg-white z-10 p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 className="text-xl font-bold text-gray-800">Fechar Comanda - {tableName}</h3>
+            <motion.button 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowCloseOrderModal(false)}
+              className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <FaTimes className="h-5 w-5" />
+            </motion.button>
+          </div>
+          
+          <div className="p-4">
+            <div className="mb-6">
+              <h4 className="font-bold text-lg text-gray-800 mb-3">Resumo do Pedido</h4>
+              
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-gray-700">Número do Pedido:</span>
+                  <span className="font-medium text-blue-600">{selectedOrder.id.slice(0, 8)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-700">Data/Hora:</span>
+                  <span className="text-gray-600">
+                    {new Date(selectedOrder.createdAt).toLocaleString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gray-100 px-4 py-2 border-b flex justify-between font-medium text-gray-700">
+                  <span>Itens</span>
+                  <span>Total</span>
+                </div>
+                
+                <div className="divide-y divide-gray-200 max-h-[300px] overflow-y-auto">
+                  {selectedOrder.items?.map(item => (
+                    <div key={`${item.id}-${item.addedAt}`} className="px-4 py-3">
+                      <div className="flex justify-between">
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            {item.quantity}x {item.nome}
+                          </p>
+                          {item.options && Object.entries(item.options).map(([optionKey, optionValue]) => {
+                            const optionConfig = menu[item.category]?.itens?.find(i => i.id === item.id)?.opcoes?.[optionKey];
+                            if (optionConfig) {
+                              if (Array.isArray(optionValue)) {
+                                return optionValue.map(val => {
+                                  const optionItem = optionConfig.itens.find(i => i.valor === val);
+                                  return optionItem && (
+                                    <div key={val} className="text-xs text-gray-600">- {optionItem.label}</div>
+                                  );
+                                });
+                              } else {
+                                const optionItem = optionConfig.itens.find(i => i.valor === optionValue);
+                                return optionItem && (
+                                  <div key={optionValue} className="text-xs text-gray-600">- {optionItem.label}</div>
+                                );
+                              }
+                            }
+                            return null;
+                          })}
+                          {item.notes && (
+                            <div className="text-xs text-gray-600 mt-1">
+                              <span className="font-semibold">Obs:</span> {item.notes}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-blue-600 font-medium">
+                            € {(item.price * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="bg-gray-50 px-4 py-3 border-t flex justify-between font-bold text-lg">
+                  <span>Total:</span>
+                  <span className="text-green-600">€ {orderTotal.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+                   
+            <div className="flex flex-col sm:flex-row gap-3">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowCloseOrderModal(false)}
+                className="px-4 py-3 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-all hover:shadow-md flex items-center justify-center gap-2 border border-gray-300 font-medium"
+              >
+                <FaChevronLeft className="h-4 w-4" />
+                Voltar
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={closeOrder}
+                disabled={isClosingOrder}
+                className="px-4 py-3 bg-gradient-to-br from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all hover:shadow-md flex items-center justify-center gap-2 font-medium"
+              >
+                {isClosingOrder ? (
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <FaCheck className="h-5 w-5" />
+                )}
+                Confirmar Fechamento
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  };
 
   // Renderização dos detalhes da mesa
   const renderTableDetailsModal = () => {
@@ -2103,22 +2259,14 @@ const calculateOrderTotal = useCallback((order) => {
                       </motion.button>
 
                       <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={closeOrder}
-                        disabled={isClosingOrder}
-                        className="px-4 py-3 bg-gradient-to-br from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all hover:shadow-md flex items-center justify-center gap-2 font-medium"
-                      >
-                        {isClosingOrder ? (
-                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        ) : (
-                          <FaCheck className="h-5 w-5" />
-                        )}
-                        Fechar Mesa
-                      </motion.button>
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => selectedOrder && setShowCloseOrderModal(true)}
+                      className="px-4 py-3 bg-gradient-to-br from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all hover:shadow-md flex items-center justify-center gap-2 font-medium"
+                    >
+                      <FaCheck className="h-5 w-5" />
+                      Fechar Mesa
+                    </motion.button>
                     </div>
                   </div>
                 )}
@@ -2241,6 +2389,7 @@ const calculateOrderTotal = useCallback((order) => {
         {showAddItemModal && renderAddItemModal()}
         {showHistoryModal && renderHistoryModal()}
         {showTableDetailsModal && renderTableDetailsModal()}
+        {showCloseOrderModal && renderCloseOrderModal()}
       </AnimatePresence>
     </div>
   );
