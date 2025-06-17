@@ -26,8 +26,8 @@ export const menu = {
             itens: [
               { valor: "banana", label: "Banana" },
               { valor: "batata Frita", label: "Batata Frita" },
-              { valor: "mandiocaFrita", label: "Mandioca Frita" },
-              { valor: "mandiocaCozida", label: "Mandioca Cozida" }
+              { valor: "mandioca Frita", label: "Mandioca Frita" },
+              { valor: "mandioca Cozida", label: "Mandioca Cozida" }
             ],
             padrao: "banana"
           },
@@ -46,7 +46,7 @@ export const menu = {
               { valor: "maminha", label: "Maminha" },
               { valor: "torresmo", label: "Torresmo" },
               { 
-                valor: "somenteMaminha", 
+                valor: "somente Maminha", 
                 label: "Apenas Maminha (+1 euro)", 
                 preco: 1.00, 
                 exclusivo: true,
@@ -55,8 +55,8 @@ export const menu = {
             ],
             regras: [
               {
-                condicao: { valor: "somenteMaminha", selecionado: true },
-                acao: "desmarcarOutros"
+                condicao: { valor: "somente Maminha", selecionado: true },
+                acao: "desmarcar Outros"
               }
             ]
           },
@@ -67,7 +67,7 @@ export const menu = {
             itens: [
               { valor: "mista", label: "Salada Mista" },
               { valor: "vinagrete", label: "Vinagrete" },
-              { valor: "semSalada", label: "Sem Salada", padrao: true }
+              { valor: "sem Salada", label: "Sem Salada", padrao: true }
             ]
           },
           pontoCarne: {
@@ -75,9 +75,9 @@ export const menu = {
             obrigatorio: true,
             tipo: "radio",
             itens: [
-              { valor: "malpassada", label: "Mal passada" },
-              { valor: "aoponto", label: "Ao ponto", padrao: true },
-              { valor: "bempassada", label: "Bem passada" }
+              { valor: "mal passada", label: "Mal passada" },
+              { valor: "ao ponto", label: "Ao ponto", padrao: true },
+              { valor: "bem passada", label: "Bem passada" }
             ]
           }
         },
@@ -107,8 +107,8 @@ export const menu = {
             itens: [
               { valor: "banana", label: "Banana" },
               { valor: "batata", label: "Batata" },
-              { valor: "mandiocaFrita", label: "Mandioca Frita" },
-              { valor: "mandiocaCozida", label: "Mandioca Cozida" }
+              { valor: "mandioca Frita", label: "Mandioca Frita" },
+              { valor: "mandioca Cozida", label: "Mandioca Cozida" }
             ]
           },
           salada: {
@@ -145,8 +145,8 @@ export const menu = {
             itens: [
               { valor: "banana", label: "Banana" },
               { valor: "batata", label: "Batata" },
-              { valor: "mandiocaFrita", label: "Mandioca Frita" },
-              { valor: "mandiocaCozida", label: "Mandioca Cozida" }
+              { valor: "mandioca Frita", label: "Mandioca Frita" },
+              { valor: "mandioca Cozida", label: "Mandioca Cozida" }
             ]
           },
           salada: {
@@ -156,7 +156,7 @@ export const menu = {
             itens: [
               { valor: "mista", label: "Salada Mista" },
               { valor: "vinagrete", label: "Vinagrete" },
-              { valor: "semSalada", label: "Sem Salada" }
+              { valor: "sem Salada", label: "Sem Salada" }
             ]
           }
         }
@@ -184,7 +184,7 @@ export const menu = {
               { valor: "banana", label: "Banana" },
               { valor: "batata", label: "Batata" },
               { valor: "mandiocaFrita", label: "Mandioca Frita" },
-              { valor: "mandiocaCozida", label: "Mandioca Cozida" }
+              { valor: "mandioca Cozida", label: "Mandioca Cozida" }
             ]
           },
           salada: {
@@ -194,7 +194,7 @@ export const menu = {
             itens: [
               { valor: "mista", label: "Salada Mista" },
               { valor: "vinagrete", label: "Vinagrete" },
-              { valor: "semSalada", label: "Sem Salada" }
+              { valor: "sem Salada", label: "Sem Salada" }
             ]
           }
         }
@@ -221,8 +221,8 @@ export const menu = {
             itens: [
               { valor: "banana", label: "Banana" },
               { valor: "batata", label: "Batata" },
-              { valor: "mandiocaFrita", label: "Mandioca Frita" },
-              { valor: "mandiocaCozida", label: "Mandioca Cozida" }
+              { valor: "mandioca Frita", label: "Mandioca Frita" },
+              { valor: "mandioca Cozida", label: "Mandioca Cozida" }
             ]
           },
           salada: {
@@ -266,9 +266,9 @@ export const menu = {
             obrigatorio: false,
             tipo: "checkbox",
             itens: [
-              { valor: "bacon", label: "Bacon" },
-              { valor: "queijoExtra", label: "Queijo Extra" },
-              { valor: "ovo", label: "Ovo" }
+              { valor: "bacon", label: "Bacon +€1,50", preco: 1.50 },
+              { valor: "queijo Extra", label: "Queijo Extra +€1,00", preco: 1.00 },
+              { valor: "ovo", label: "Ovo +€0,50", preco: 0.50 }
             ]
           }
         }
@@ -284,8 +284,8 @@ export const menu = {
             obrigatorio: false,
             tipo: "checkbox",
             itens: [
-              { valor: "queijoExtra", label: "Queijo Extra" },
-              { valor: "ovo", label: "Ovo" }
+              { valor: "queijo Extra", label: "Queijo Extra +€1,00", preco: 1.00 },
+              { valor: "ovo", label: "Ovo +€0,50", preco: 0.50 }
             ]
           }
         }
@@ -301,8 +301,8 @@ export const menu = {
             obrigatorio: false,
             tipo: "checkbox",
             itens: [
-              { valor: "bacon", label: "Bacon" },
-              { valor: "queijoExtra", label: "Queijo Extra" }
+              { valor: "bacon", label: "Bacon +€1,50", preco: 1.50 },
+              { valor: "queijo Extra", label: "Queijo Extra +€1,00", preco: 1.00 }
             ]
           }
         }
@@ -318,7 +318,7 @@ export const menu = {
             obrigatorio: false,
             tipo: "checkbox",
             itens: [
-              { valor: "bacon", label: "Bacon" }
+              { valor: "bacon", label: "Bacon +€1,50", preco: 1.50 }
             ]
           }
         }
@@ -334,7 +334,7 @@ export const menu = {
             obrigatorio: false,
             tipo: "checkbox",
             itens: [
-              { valor: "queijoExtra", label: "Queijo Extra" }
+              { valor: "queijo Extra", label: "Queijo Extra +€1,00", preco: 1.00 }
             ]
           }
         }
@@ -497,7 +497,7 @@ export const menu = {
             tipo: "radio",
             itens: [
               { valor: "coca", label: "Coca-Cola" },
-              { valor: "cocaZero", label: "Coca-Cola Zero" },
+              { valor: "coca Zero", label: "Coca-Cola Zero" },
               { valor: "seteup", label: "7Up" },
               { valor: "fanta", label: "Fanta Laranja" },
               { valor: "guarana", label: "Guaraná Antarctica" }
@@ -531,8 +531,8 @@ export const menu = {
       },
       {
         id: 522,
-        nome: "Summersby",
-        descricao: "Summersby",
+        nome: "Somersby",
+        descricao: "Somersby",
         preco: 5.00
       },
       {
@@ -714,7 +714,7 @@ export const menu = {
             tipo: "checkbox",
             itens: [
               { valor: "granola", label: "Granola" },
-              { valor: "leiteCondensado", label: "Leite Condensado" },
+              { valor: "leite Condensado", label: "Leite Condensado" },
               { valor: "banana", label: "Banana" },
               { valor: "morango", label: "Morango" }
             ]
@@ -733,7 +733,7 @@ export const menu = {
             tipo: "checkbox",
             itens: [
               { valor: "granola", label: "Granola" },
-              { valor: "leiteCondensado", label: "Leite Condensado" },
+              { valor: "leite Condensado", label: "Leite Condensado" },
               { valor: "banana", label: "Banana" },
               { valor: "morango", label: "Morango" }
             ]
