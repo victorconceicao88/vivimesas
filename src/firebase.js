@@ -4,15 +4,14 @@ import { getDatabase } from 'firebase/database';
 
 // Configuração do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyC8qm6-t7s7TM63oeiXyhE4MKWRkJIJ5J0",
-  authDomain: "vivimesas.firebaseapp.com",
-  databaseURL: "https://vivimesas-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "vivimesas",
-  storageBucket: "vivimesas.appspot.com",
-  messagingSenderId: "329951800326",
-  appId: "1:329951800326:web:7d3ca723ab1b689a142787"
+  apiKey: "AIzaSyAV5uZcKTJmD3Nq1dPcRmf06MqImPHtMK4",
+  authDomain: "vivi-mesas.firebaseapp.com",
+  databaseURL: "https://vivi-mesas-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "vivi-mesas",
+  storageBucket: "vivi-mesas.firebasestorage.app",
+  messagingSenderId: "474281303193",
+  appId: "1:474281303193:web:02cf569ee430b664faec08"
 };
-
 
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
